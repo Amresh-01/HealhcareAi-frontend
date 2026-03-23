@@ -1,139 +1,87 @@
-// import { useState, useEffect } from "react"
-// import { Navbar } from "@/components/Navbar"
-// import { HeroSection } from "@/components/HeroSection"
-// import { SymptomChecker } from "@/components/SymptomChecker"
-// import { Dashboard } from "@/components/Dashboard"
-// import { DoctorCards } from "@/components/DoctorCards"
-// import { AIChatAssistant, ChatTriggerButton } from "@/components/AIChatAssistant"
-// import { TrustBadgesCompact } from "@/components/TrustBadges"
-// import { Activity, Github, Twitter, Linkedin, Mail } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Routes, Route, useLocation } from "react-router-dom"
 
-// export default function App() {
-//   const [currentPage, setCurrentPage] = useState("home")
-//   const [isDarkMode, setIsDarkMode] = useState(false)
-//   const [isChatOpen, setIsChatOpen] = useState(false)
-//   const [isChatExpanded, setIsChatExpanded] = useState(false)
+import {Navbar}  from "./components/Navbar"
+import { Footer } from "./components/Footer"
 
-//   useEffect(() => {
-//     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches
-//     setIsDarkMode(prefersDark)
+import { HeroSection } from "./pages/HeroSection"
+import { Dashboard } from "./pages/Dashboard"
+import { DoctorCards } from "./pages/DoctorCards"
+import { SymptomChecker } from "./components/SymptomChecker"
 
-//     if (prefersDark) {
-//       document.documentElement.classList.add("dark")
-//     }
-//   }, [])
+import { AIChatAssistance } from "./components/AIChatAssistance"
 
-//   const toggleDarkMode = () => {
-//     setIsDarkMode(!isDarkMode)
-//     document.documentElement.classList.toggle("dark")
-//   }
+export default function App() {
+  const [isDarkMode, setIsDarkMode] = useState(false)
+  const [isChatOpen, setIsChatOpen] = useState(false)
+  const [isChatExpanded, setIsChatExpanded] = useState(false)
 
-//   const renderPage = () => {
-//     switch (currentPage) {
-//       case "home":
-//         return <HeroSection onNavigate={setCurrentPage} />
+  const location = useLocation()
 
-//       case "symptoms":
-//         return (
-//           <div className="container mx-auto px-4 py-8">
-//             <h1 className="text-3xl font-bold">AI Symptom Checker</h1>
-//             <div className="mt-6 max-w-3xl mx-auto">
-//               <SymptomChecker />
-//             </div>
-//           </div>
-//         )
+  // Example: hide footer on chat-heavy pages if needed
+  const hideFooter = location.pathname === "/dashboard"
 
-//       case "dashboard":
-//         return (
-//           <div className="container mx-auto px-4 py-8">
-//             <Dashboard onNavigate={setCurrentPage} />
-//           </div>
-//         )
+  useEffect(() => {
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches
+    setIsDarkMode(prefersDark)
 
-//       case "doctors":
-//         return (
-//           <div className="container mx-auto px-4 py-8">
-//             <h1 className="text-3xl font-bold">Find a Doctor</h1>
-//             <DoctorCards />
-//           </div>
-//         )
+    if (prefersDark) {
+      document.documentElement.classList.add("dark")
+    }
+  }, [])
 
-//       default:
-//         return <HeroSection onNavigate={setCurrentPage} />
-//     }
-//   }
+  const toggleDarkMode = () => {
+    setIsDarkMode(!isDarkMode)
+    document.documentElement.classList.toggle("dark")
+  }
 
-//   return (
-//     <div className="min-h-screen bg-background">
-      
-//       <Navbar
-//         currentPage={currentPage}
-//         onPageChange={setCurrentPage}
-//         isDarkMode={isDarkMode}
-//         onToggleDarkMode={toggleDarkMode}
-//       />
+  return (
+    <>
+      <div className="min-h-screen flex flex-col bg-background">
 
-      
-//       <main className="pb-20">{renderPage()}</main>
+        {/* Navbar */}
+        <Navbar
+          isDarkMode={isDarkMode}
+          onToggleDarkMode={toggleDarkMode}
+        />
 
-      
-//       <footer className="border-t bg-card/50">
-//         <div className="container mx-auto px-4 py-12">
+        {/* MAIN CONTENT */}
+        <div className="flex flex-1">
+          <main className="flex-1 p-4 overflow-y-auto pb-20">
 
-//           <div className="grid gap-8 md:grid-cols-4">
+            {/* ROUTES */}
+            <Routes>
+              <Route path="/" element={<HeroSection />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/doctors" element={<DoctorCards />} />
+              <Route path="/symptoms" element={<SymptomChecker />} />
+            </Routes>
 
-//             {/* Brand */}
-//             <div>
-//               <div className="flex items-center gap-2">
-//                 <div className="h-9 w-9 flex items-center justify-center bg-primary text-white rounded-lg">
-//                   <Activity className="h-5 w-5" />
-//                 </div>
-//                 <span className="text-xl font-bold">
-//                   HealthCare<span className="text-primary">AI</span>
-//                 </span>
-//               </div>
+          </main>
+        </div>
 
-//               <p className="mt-4 text-sm text-muted-foreground">
-//                 AI-powered health insights platform.
-//               </p>
+        {/* Footer (conditionally render) */}
+        {!hideFooter && <Footer />}
 
-//               <div className="flex gap-4 mt-4">
-//                 <Twitter className="h-5 w-5" />
-//                 <Github className="h-5 w-5" />
-//                 <Linkedin className="h-5 w-5" />
-//                 <Mail className="h-5 w-5" />
-//               </div>
-//             </div>
+      </div>
 
-//             {/* Links */}
-//             <div>
-//               <h4 className="font-semibold mb-4">Product</h4>
-//               <button onClick={() => setCurrentPage("symptoms")}>Symptoms</button>
-//               <br />
-//               <button onClick={() => setCurrentPage("dashboard")}>Dashboard</button>
-//             </div>
+      {/* Floating Chat Button */}
+      {!isChatOpen && (
+        <button
+          onClick={() => setIsChatOpen(true)}
+          className="fixed bottom-4 right-4 z-50 bg-primary text-white px-4 py-3 rounded-full shadow-lg hover:scale-105 transition"
+        >
+          💬 Ask AI
+        </button>
+      )}
 
-//           </div>
-
-//           <div className="mt-8 border-t pt-6 text-center">
-//             <p className="text-sm text-muted-foreground">
-//               © 2026 HealthCareAI
-//             </p>
-//             <TrustBadgesCompact />
-//           </div>
-//         </div>
-//       </footer>
-
-//       {!isChatOpen && (
-//         <ChatTriggerButton onClick={() => setIsChatOpen(true)} />
-//       )}
-
-//       <AIChatAssistant
-//         isOpen={isChatOpen}
-//         onClose={() => setIsChatOpen(false)}
-//         isExpanded={isChatExpanded}
-//         onToggleExpand={() => setIsChatExpanded(!isChatExpanded)}
-//       />
-//     </div>
-//   )
-// }
+      {/* AI Chat Assistant */}
+      <AIChatAssistance
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        isExpanded={isChatExpanded}
+        onToggleExpand={() => setIsChatExpanded(!isChatExpanded)}
+      />
+    </>
+  )
+}

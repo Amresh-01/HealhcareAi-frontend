@@ -1,4 +1,6 @@
 import { useState } from "react"
+import { Link, NavLink } from "react-router-dom"
+
 import { Button } from "@/components/ui/button.jsx"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -11,59 +13,56 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet.jsx"
 import { Activity, Menu, Moon, Sun, User, Settings, LogOut } from "lucide-react"
 
-export function Navbar({ currentPage, onPageChange, isDarkMode, onToggleDarkMode }) {
+export function Navbar({ isDarkMode, onToggleDarkMode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const navItems = [
-    { id: "home", label: "Home" },
-    { id: "symptoms", label: "Symptoms" },
-    { id: "dashboard", label: "Dashboard" },
-    { id: "doctors", label: "Doctors" },
+    { path: "/", label: "Home" },
+    { path: "/symptoms", label: "Symptoms" },
+    { path: "/dashboard", label: "Dashboard" },
+    { path: "/doctors", label: "Doctors" },
   ]
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur-sm">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur-sm">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        
-        {/* Logo */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => onPageChange("home")}
-            className="flex items-center gap-2 hover:scale-105 transition"
-          >
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Activity className="h-5 w-5" />
-            </div>
-            <span className="text-xl font-bold">
-              HealthCare<span className="text-primary">AI</span>
-            </span>
-          </button>
-        </div>
 
-        {/* Desktop Nav */}
-        <nav className="hidden md:flex items-center gap-1">
+        <Link to="/" className="flex items-center gap-2 hover:scale-105 transition">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-white">
+            <Activity className="h-5 w-5" />
+          </div>
+          <span className="text-xl font-bold">
+            HealthCare<span className="text-primary">AI</span>
+          </span>
+        </Link>
+
+        <nav className="hidden md:flex items-center gap-2">
           {navItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => onPageChange(item.id)}
-              className={`relative px-4 py-2 text-sm font-medium ${
-                currentPage === item.id
-                  ? "text-primary"
-                  : "text-muted-foreground"
-              }`}
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={({ isActive }) =>
+                `relative px-4 py-2 text-sm font-medium transition ${
+                  isActive ? "text-primary" : "text-muted-foreground"
+                }`
+              }
             >
-              {item.label}
-              {currentPage === item.id && (
-                <span className="absolute bottom-0 left-1/2 h-0.5 w-8 -translate-x-1/2 bg-primary" />
+              {({ isActive }) => (
+                <>
+                  {item.label}
+                  {isActive && (
+                    <span className="absolute bottom-0 left-1/2 h-0.5 w-8 -translate-x-1/2 bg-primary" />
+                  )}
+                </>
               )}
-            </button>
+            </NavLink>
           ))}
         </nav>
 
-        {/* Right Section */}
+        {/* ✅ Right Section */}
         <div className="flex items-center gap-2">
 
-          {/* Dark Mode Toggle */}
+          {/* Dark Mode */}
           <Button variant="ghost" size="icon" onClick={onToggleDarkMode}>
             {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>
@@ -115,7 +114,7 @@ export function Navbar({ currentPage, onPageChange, isDarkMode, onToggleDarkMode
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Mobile Menu */}
+          {/* ✅ Mobile Menu */}
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild className="md:hidden">
               <Button variant="ghost" size="icon">
@@ -126,20 +125,20 @@ export function Navbar({ currentPage, onPageChange, isDarkMode, onToggleDarkMode
             <SheetContent side="right" className="w-72">
               <div className="flex flex-col gap-4 pt-8">
                 {navItems.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      onPageChange(item.id)
-                      setMobileMenuOpen(false)
-                    }}
-                    className={`px-4 py-3 text-left text-sm rounded-lg ${
-                      currentPage === item.id
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground"
-                    }`}
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={({ isActive }) =>
+                      `px-4 py-3 rounded-lg text-sm ${
+                        isActive
+                          ? "bg-primary/10 text-primary"
+                          : "text-muted-foreground"
+                      }`
+                    }
                   >
                     {item.label}
-                  </button>
+                  </NavLink>
                 ))}
               </div>
             </SheetContent>
