@@ -163,16 +163,16 @@ export function HeroSection({ onNavigate }) {
           <div className="mb-10 flex flex-col gap-4 sm:flex-row justify-center">
             <button
               onClick={() => onNavigate("symptoms")}
-              className="group relative inline-flex items-center justify-center gap-2 rounded-xl bg-sky-500 px-8 py-4 text-sm font-semibold text-black shadow-lg shadow-sky-500/30 hover:bg-sky-400 hover:shadow-sky-400/40 hover:scale-105 transition-all duration-300"
+              className="group relative inline-flex items-center justify-center gap-2 rounded-xl bg-sky-500 px-8 py-4 text-sm font-semibold text-black shadow-lg shadow-sky-500/30 hover:bg-sky-400 hover:shadow-sky-400/40 hover:scale-105 transition-all duration-300 cursor-pointer"
             >
-              <Stethoscope className="h-5 w-5" />
+              <Stethoscope className="h-5 w-5 c" />
               Check Symptoms Now
               <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </button>
 
             <button
               onClick={() => onNavigate("dashboard")}
-              className="group inline-flex items-center justify-center gap-2 rounded-xl border border-sky-500/40 bg-sky-500/10 px-8 py-4 text-sm font-semibold text-sky-400 hover:bg-sky-500/20 hover:border-sky-400 hover:scale-105 transition-all duration-300"
+              className="group inline-flex items-center justify-center gap-2 rounded-xl border border-sky-500/40 bg-sky-500/10 px-8 py-4 text-sm font-semibold text-sky-400 hover:bg-sky-500/20 hover:border-sky-400 hover:scale-105 transition-all duration-300 cursor-pointer"
             >
               <Play className="h-4 w-4 group-hover:text-white transition-colors" />
               View Dashboard

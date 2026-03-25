@@ -4,12 +4,14 @@ import { Routes, Route, useLocation } from "react-router-dom"
 import {Navbar}  from "./components/Navbar"
 import { Footer } from "./components/Footer"
 
-import { HeroSection } from "./pages/HeroSection"
+import { HeroSection } from "./components/HeroSection"
 import { Dashboard } from "./pages/Dashboard"
-import { DoctorCards } from "./pages/DoctorCards"
+import { DoctorCards } from "./components/DoctorCards"
 import { SymptomChecker } from "./components/SymptomChecker"
 
 import { AIChatAssistance } from "./components/AIChatAssistance"
+import Login from "./pages/Login"
+import Signup from "./pages/Signup"
 
 export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(false)
@@ -38,8 +40,6 @@ export default function App() {
   return (
     <>
       <div className="min-h-screen flex flex-col bg-background">
-
-        {/* Navbar */}
         <Navbar
           isDarkMode={isDarkMode}
           onToggleDarkMode={toggleDarkMode}
@@ -52,6 +52,8 @@ export default function App() {
             {/* ROUTES */}
             <Routes>
               <Route path="/" element={<HeroSection />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/doctors" element={<DoctorCards />} />
               <Route path="/symptoms" element={<SymptomChecker />} />
@@ -69,7 +71,7 @@ export default function App() {
       {!isChatOpen && (
         <button
           onClick={() => setIsChatOpen(true)}
-          className="fixed bottom-4 right-4 z-50 bg-primary text-white px-4 py-3 rounded-full shadow-lg hover:scale-105 transition"
+          className="fixed bottom-4 right-4 z-50 bg-blue-950 text-white px-4 py-3 rounded-full shadow-lg hover:scale-105 transition cursor-pointer"
         >
           💬 Ask AI
         </button>

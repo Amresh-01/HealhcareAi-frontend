@@ -195,7 +195,7 @@ export function AIChatAssistance({
         >
           <Send size={16} />
         </button>
-      </div>
+      </div>  
     </div>
   )
 }
