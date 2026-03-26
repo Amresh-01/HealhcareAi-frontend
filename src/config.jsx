@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from "react"
+import { API_BASE_URL } from "../config"
 
 const StateContext = createContext(null)
 

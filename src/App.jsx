@@ -7,7 +7,7 @@ import { Footer } from "./components/Footer"
 import { HeroSection } from "./components/HeroSection"
 import { Dashboard } from "./pages/Dashboard"
 import { DoctorCards } from "./components/DoctorCards"
-import { SymptomChecker } from "./components/SymptomChecker"
+import { SymptomChecker } from "./components/SymptomChecker.jsx"
 
 import { AIChatAssistance } from "./components/AIChatAssistance"
 import Login from "./pages/Login"
