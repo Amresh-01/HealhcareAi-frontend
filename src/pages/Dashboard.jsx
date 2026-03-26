@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { DashboardSkeleton } from "@/components/skeleton-loaders"
+import { DashboardSkeleton } from "@/components/Skeleton-loaders"
 import { NoSymptomChecksEmpty, NoAppointmentsEmpty } from "@/components/EmptyState"
 import { HealthInsightsChart, SymptomDistributionChart, MonthlyTrendsChart } from "@/components/HealthCharts"
 import {
