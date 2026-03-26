@@ -49,7 +49,7 @@ export function SignupForm() {
       localStorage.setItem("user", JSON.stringify(user))
 
       setLoading(false)
-      navigate("/") // redirect to dashboard/home
+      navigate("/login") 
     } catch (err) {
       setError(err.response?.data?.message || "Signup failed")
       setLoading(false)
