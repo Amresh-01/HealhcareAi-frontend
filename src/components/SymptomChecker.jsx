@@ -12,13 +12,37 @@ export function SymptomChecker() {
   const [error, setError] = useState("")
 
   // Popular symptoms fallback
-  const popularSymptoms = ["Fever", "Cough", "Headache", "Fatigue", "Sore throat"]
+  const popularSymptoms = ["Fever", "Cough", "Headache", "Fatigue", "Sore throat", "sharp abdominal pain",
+    "headache",
+    "vomiting",
+    "sharp chest pain",
+    "shortness of breath",
+    "cough",
+    "nausea",
+    "dizziness",
+    "fever",
+    "back pain",
+    "abnormal appearing skin",
+    "depressive or psychotic symptoms",
+    "leg pain",
+    "skin swelling",
+    "nasal congestion",
+    "lower abdominal pain",
+    "sore throat",
+    "skin lesion",
+    "skin rash",
+    "abnormal involuntary movements",
+    "pain in eye",
+    "depression",
+    "skin growth",
+    "weakness",
+    "anxiety and nervousness"]
 
   // Fetch symptoms from backend
   useEffect(() => {
     const fetchSymptoms = async () => {
       try {
-        const res = await axios.get(`${API_BASE_URL}/ml/symptoms`)
+        const res = await axios.get(`${API_BASE_URL}/ml/symptoms?all=true`)
         setAllSymptoms(res.data.data?.symptoms || [])
       } catch (err) {
         console.error(err)

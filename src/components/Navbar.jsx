@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet.jsx"
 import { Activity, Menu, Moon, Sun, User, Settings, LogOut } from "lucide-react"
+import { API_BASE_URL } from "../../config"
+import axios from "axios"
 
 const navItems = [
   { path: "/", label: "Home" },
@@ -36,13 +38,32 @@ export function Navbar({ isDarkMode, onToggleDarkMode }) {
     }
   }, [])
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+  try {
+    const token = localStorage.getItem("token")
+
+    await axios.post(
+      `${API_BASE_URL}/user/logout`,
+      {}, 
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        withCredentials: true, 
+      }
+    )
+
+  } catch (error) {
+    console.error("Logout API failed", error)
+  } finally {
     localStorage.removeItem("user")
     localStorage.removeItem("token")
     localStorage.removeItem("refreshToken")
     setUser(null)
     navigate("/")
   }
+}
 
   const getUserInitials = (name) =>
     name
