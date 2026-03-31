@@ -12,7 +12,7 @@ import { SymptomChecker } from "./components/SymptomChecker.jsx"
 import { AIChatAssistance } from "./components/AIChatAssistance"
 import Login from "./pages/Login"
 import Signup from "./pages/Signup"
-import HealthScanner from "./components/healthScanner"
+import HealthScanner from "./components/HealthScanner.jsx"
 
 export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(false)
