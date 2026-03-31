@@ -18,6 +18,7 @@ import axios from "axios"
 const navItems = [
   { path: "/", label: "Home" },
   { path: "/symptoms", label: "Symptoms" },
+  { path: "/healthScanner", label: "HealthScanner" },
   { path: "/dashboard", label: "Dashboard" },
   { path: "/doctors", label: "Doctors" },
 ]
