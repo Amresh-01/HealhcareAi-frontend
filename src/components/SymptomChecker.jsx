@@ -204,7 +204,7 @@ export function SymptomChecker() {
       >
         {isAnalyzing ? (
           <>
-            <Loader2 className="animate-spin h-4 w-4" /> AI analyzing...
+            <Loader2 className="animate-spin h-4 w-4" /> Ai Analyzing...
           </>
         ) : (
           <>

@@ -13,6 +13,7 @@ import { AIChatAssistance } from "./components/AIChatAssistance"
 import Login from "./pages/Login"
 import Signup from "./pages/Signup"
 import HealthScanner from "./components/HealthScanner.jsx"
+import BarcodeScanner from "./components/BarcodeScanner.jsx"
 
 export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(false)
@@ -59,6 +60,7 @@ export default function App() {
               <Route path="/doctors" element={<DoctorCards />} />
               <Route path="/symptoms" element={<SymptomChecker />} />
               <Route path="/healthScanner" element={<HealthScanner/>}/>
+              <Route path="/barcode" element={<BarcodeScanner/>}/>
             </Routes>
 
           </main>

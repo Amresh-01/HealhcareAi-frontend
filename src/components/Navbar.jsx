@@ -19,6 +19,7 @@ const navItems = [
   { path: "/", label: "Home" },
   { path: "/symptoms", label: "Symptoms" },
   { path: "/healthScanner", label: "HealthScanner" },
+  { path: "/barcode", label: "Barcode Scanner" },
   { path: "/dashboard", label: "Dashboard" },
   { path: "/doctors", label: "Doctors" },
 ]
@@ -40,31 +41,31 @@ export function Navbar({ isDarkMode, onToggleDarkMode }) {
   }, [])
 
   const handleLogout = async () => {
-  try {
-    const token = localStorage.getItem("token")
+    try {
+      const token = localStorage.getItem("token")
 
-    await axios.post(
-      `${API_BASE_URL}/user/logout`,
-      {}, 
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        withCredentials: true, 
-      }
-    )
+      await axios.post(
+        `${API_BASE_URL}/user/logout`,
+        {},
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          withCredentials: true,
+        }
+      )
 
-  } catch (error) {
-    console.error("Logout API failed", error)
-  } finally {
-    localStorage.removeItem("user")
-    localStorage.removeItem("token")
-    localStorage.removeItem("refreshToken")
-    setUser(null)
-    navigate("/")
+    } catch (error) {
+      console.error("Logout API failed", error)
+    } finally {
+      localStorage.removeItem("user")
+      localStorage.removeItem("token")
+      localStorage.removeItem("refreshToken")
+      setUser(null)
+      navigate("/")
+    }
   }
-}
 
   const getUserInitials = (name) =>
     name
@@ -96,8 +97,7 @@ export function Navbar({ isDarkMode, onToggleDarkMode }) {
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `relative px-4 py-2 text-sm font-medium transition-colors duration-200 rounded-md hover:text-primary ${
-                  isActive ? "text-primary" : "text-muted-foreground"
+                `relative px-4 py-2 text-sm font-medium transition-colors duration-200 rounded-md hover:text-primary ${isActive ? "text-primary" : "text-muted-foreground"
                 }`
               }
             >
