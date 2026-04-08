@@ -17,7 +17,6 @@ import {
   Sparkles,
   CheckCircle,
   History,
-  Pill,
 } from "lucide-react"
 
 const HealthScanner = () => {
@@ -25,17 +24,16 @@ const HealthScanner = () => {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState(null)
   const [history, setHistory] = useState([])
+  const [error, setError] = useState("")
 
   const token = localStorage.getItem("token")
 
- 
+
   const fetchHistory = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/ml/history`, {
         headers: { Authorization: `Bearer ${token}` },
       })
-
-      console.log("HISTORY:", res.data) 
 
       setHistory(res.data.data || [])
     } catch (err) {
@@ -43,23 +41,21 @@ const HealthScanner = () => {
     }
   }
 
-
   useEffect(() => {
-    if (token) {
-      fetchHistory()
-    }
+    if (token) fetchHistory()
   }, [token])
 
   const handleAnalyze = async () => {
     if (!review.trim()) return
 
     setLoading(true)
+    setError("")
     setResult(null)
 
     try {
       const res = await axios.post(
         `${API_BASE_URL}/ml/analyze`,
-        { review },
+        { text: review }, 
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -67,37 +63,38 @@ const HealthScanner = () => {
 
       setResult(res.data.data.result)
 
-      fetchHistory() // refresh history after new prediction
+      fetchHistory()
+
     } catch (err) {
       console.error("Analyze error:", err.response?.data || err.message)
+      setError("Failed to analyze input")
     }
 
     setLoading(false)
   }
 
-  const getPercent = (c) => {
-    if (!c) return 0
-    return parseFloat(c) || 0
+  const getScoreColor = (score) => {
+    if (score > 80) return "bg-green-500"
+    if (score > 50) return "bg-yellow-500"
+    return "bg-red-500"
   }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
 
-      {/* Header */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-xl">
             <Sparkles className="h-5 w-5 text-blue-500" />
-            AI NLP Health Analyzer
+            AI Health Analyzer
           </CardTitle>
         </CardHeader>
       </Card>
 
-      {/* Input */}
       <Card>
         <CardContent className="space-y-4 pt-6">
           <Textarea
-            placeholder="Describe your symptoms or health issue..."
+            placeholder="Describe what you ate today..."
             value={review}
             onChange={(e) => setReview(e.target.value)}
             rows={4}
@@ -116,69 +113,82 @@ const HealthScanner = () => {
               </>
             )}
           </Button>
+
+          {error && (
+            <p className="text-red-500 text-sm">{error}</p>
+          )}
         </CardContent>
       </Card>
 
-      {/* Result */}
       {result && (
         <Card>
           <CardHeader>
             <CardTitle className="text-green-500 flex items-center gap-2">
               <CheckCircle className="h-4 w-4" />
-              Analysis Result
+              Health Analysis Result
             </CardTitle>
           </CardHeader>
 
           <CardContent className="space-y-4">
+
             <div>
-              <p className="text-sm text-muted-foreground">Condition</p>
-              <p className="text-lg font-semibold">
-                {result.predicted_condition}
-              </p>
+              <p className="text-sm text-muted-foreground">Detected Items</p>
+              <div className="flex flex-wrap gap-2 mt-1">
+                {result.detectedItems?.length > 0 ? (
+                  result.detectedItems.map((item, i) => (
+                    <Badge key={i}>{item}</Badge>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">No items detected</p>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <p className="text-sm text-muted-foreground">Calories</p>
+              <p className="text-lg font-semibold">{result.calories} kcal</p>
+            </div>
+
+            <div>
+              <p className="text-sm text-muted-foreground">Activity Level</p>
+              <Badge variant="outline">{result.activityLevel}</Badge>
             </div>
 
             <div>
               <p className="text-sm text-muted-foreground">
-                Confidence: {result.confidence}
+                Health Score: {result.healthScore}/100
               </p>
 
               <div className="h-2 bg-muted rounded-full mt-1">
                 <div
-                  className="h-2 bg-green-500 rounded-full"
-                  style={{
-                    width: `${getPercent(result.confidence)}%`,
-                  }}
+                  className={`h-2 rounded-full ${getScoreColor(result.healthScore)}`}
+                  style={{ width: `${result.healthScore}%` }}
                 />
               </div>
             </div>
 
             <div>
-              <h3 className="font-semibold flex items-center gap-2">
-                <Pill className="h-4 w-4 text-blue-500" />
-                Recommended Drugs
-              </h3>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
-                {(result.top_3_recommended_drugs || []).map((drug, i) => (
-                  <div key={i} className="border rounded-lg p-3 bg-muted/30">
-                    <p className="font-medium">{drug.drugName}</p>
-                    <p className="text-sm text-muted-foreground">
-                      Rating: {drug.avg_rating || "N/A"}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Useful: {drug.total_useful_count || "N/A"}
-                    </p>
-                  </div>
-                ))}
-              </div>
+              <p className="text-sm text-muted-foreground">Risk Flags</p>
+              {result.riskFlags?.length > 0 ? (
+                result.riskFlags.map((risk, i) => (
+                  <Badge key={i} variant="destructive" className="mr-2">
+                    {risk}
+                  </Badge>
+                ))
+              ) : (
+                <p className="text-green-500 text-sm">No risks detected</p>
+              )}
             </div>
+
+            <div>
+              <p className="text-sm text-muted-foreground">Recommendation</p>
+              <p className="font-medium">{result.recommendation}</p>
+            </div>
+
           </CardContent>
         </Card>
       )}
 
-      {/* =========================
-         HISTORY
-      ========================= */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -194,52 +204,46 @@ const HealthScanner = () => {
             </p>
           )}
 
-          {history.map((item) =>
-            item.predictions?.map((pred, index) => {
-              const output = pred.output || {}
+          {history.map((item) => (
+            <div
+              key={item._id}
+              className="border rounded-lg p-4 space-y-2 bg-muted/20"
+            >
+              <p className="text-xs text-muted-foreground">
+                {new Date(item.createdAt).toLocaleString()}
+              </p>
 
-              return (
-                <div
-                  key={`${item._id}-${index}`}
-                  className="border rounded-lg p-4 space-y-2 bg-muted/20"
-                >
-                  {/* USER EMAIL */}
-                  {item.userHealthId?.email && (
-                    <p className="text-xs text-muted-foreground">
-                      User: {item.userHealthId.email}
-                    </p>
-                  )}
+              <p className="text-sm">
+                <span className="font-semibold">Input:</span> {item.inputText}
+              </p>
 
-                  {/* SYMPTOMS */}
-                  <p className="text-sm">
-                    <span className="font-semibold">Symptoms:</span>{" "}
-                    {pred.input?.symptoms?.join(", ") || "N/A"}
-                  </p>
+              <p className="text-sm">
+                <span className="font-semibold">Items:</span>{" "}
+                {item.detectedItems.join(", ") || "None"}
+              </p>
 
-                  {/* DISEASE + CONFIDENCE */}
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant="secondary">
-                      {output.predictions?.[0]?.disease || "N/A"}
-                    </Badge>
+              <p className="text-sm">
+                <span className="font-semibold">Calories:</span>{" "}
+                {item.calories} kcal
+              </p>
 
-                    <Badge variant="outline">
-                      Confidence:{" "}
-                      {output.predictions?.[0]?.confidence || "N/A"}
-                    </Badge>
-                  </div>
+              <p className="text-sm">
+                <span className="font-semibold">Score:</span>{" "}
+                {item.healthScore}/100
+              </p>
 
-                  {/* TIME */}
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(pred.createdAt).toLocaleString()}
-                  </p>
-                </div>
-              )
-            })
-          )}
+              <p className="text-sm">
+                <span className="font-semibold">Recommendation:</span>{" "}
+                {item.recommendation}
+              </p>
+            </div>
+          ))}
         </CardContent>
       </Card>
+
     </div>
   )
 }
 
 export default HealthScanner
+
