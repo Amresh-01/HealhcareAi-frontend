@@ -28,14 +28,16 @@ const HealthScanner = () => {
 
   const token = localStorage.getItem("token")
 
-
+  /* =========================
+     FETCH HISTORY
+  ========================= */
   const fetchHistory = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/ml/history`, {
         headers: { Authorization: `Bearer ${token}` },
       })
 
-      setHistory(res.data.data || [])
+      setHistory(res?.data?.data || [])
     } catch (err) {
       console.error("History error:", err.response?.data || err.message)
     }
@@ -45,6 +47,9 @@ const HealthScanner = () => {
     if (token) fetchHistory()
   }, [token])
 
+  /* =========================
+     ANALYZE TEXT
+  ========================= */
   const handleAnalyze = async () => {
     if (!review.trim()) return
 
@@ -55,25 +60,29 @@ const HealthScanner = () => {
     try {
       const res = await axios.post(
         `${API_BASE_URL}/ml/analyze`,
-        { text: review }, 
+        { text: review },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       )
 
-      setResult(res.data.data.result)
+      const apiResult = res?.data?.data?.result || null
+
+      setResult(apiResult)
 
       fetchHistory()
-
     } catch (err) {
       console.error("Analyze error:", err.response?.data || err.message)
       setError("Failed to analyze input")
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
   }
 
-  const getScoreColor = (score) => {
+  /* =========================
+     SCORE COLOR
+  ========================= */
+  const getScoreColor = (score = 0) => {
     if (score > 80) return "bg-green-500"
     if (score > 50) return "bg-yellow-500"
     return "bg-red-500"
@@ -82,6 +91,7 @@ const HealthScanner = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
 
+      {/* HEADER */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-xl">
@@ -91,6 +101,7 @@ const HealthScanner = () => {
         </CardHeader>
       </Card>
 
+      {/* INPUT */}
       <Card>
         <CardContent className="space-y-4 pt-6">
           <Textarea
@@ -100,7 +111,11 @@ const HealthScanner = () => {
             rows={4}
           />
 
-          <Button onClick={handleAnalyze} disabled={loading} className="w-full">
+          <Button
+            onClick={handleAnalyze}
+            disabled={loading || !review.trim()}
+            className="w-full"
+          >
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -120,6 +135,7 @@ const HealthScanner = () => {
         </CardContent>
       </Card>
 
+      {/* RESULT */}
       {result && (
         <Card>
           <CardHeader>
@@ -131,45 +147,60 @@ const HealthScanner = () => {
 
           <CardContent className="space-y-4">
 
+            {/* DETECTED ITEMS */}
             <div>
               <p className="text-sm text-muted-foreground">Detected Items</p>
+
               <div className="flex flex-wrap gap-2 mt-1">
-                {result.detectedItems?.length > 0 ? (
+                {Array.isArray(result?.detectedItems) &&
+                result.detectedItems.length > 0 ? (
                   result.detectedItems.map((item, i) => (
                     <Badge key={i}>{item}</Badge>
                   ))
                 ) : (
-                  <p className="text-sm text-muted-foreground">No items detected</p>
+                  <p className="text-sm text-muted-foreground">
+                    No items detected
+                  </p>
                 )}
               </div>
             </div>
 
+            {/* CALORIES */}
             <div>
               <p className="text-sm text-muted-foreground">Calories</p>
-              <p className="text-lg font-semibold">{result.calories} kcal</p>
+              <p className="text-lg font-semibold">
+                {result?.calories || 0} kcal
+              </p>
             </div>
 
+            {/* ACTIVITY */}
             <div>
               <p className="text-sm text-muted-foreground">Activity Level</p>
-              <Badge variant="outline">{result.activityLevel}</Badge>
+              <Badge variant="outline">
+                {result?.activityLevel || "Unknown"}
+              </Badge>
             </div>
 
+            {/* SCORE */}
             <div>
               <p className="text-sm text-muted-foreground">
-                Health Score: {result.healthScore}/100
+                Health Score: {result?.healthScore || 0}/100
               </p>
 
               <div className="h-2 bg-muted rounded-full mt-1">
                 <div
-                  className={`h-2 rounded-full ${getScoreColor(result.healthScore)}`}
-                  style={{ width: `${result.healthScore}%` }}
+                  className={`h-2 rounded-full ${getScoreColor(result?.healthScore)}`}
+                  style={{ width: `${result?.healthScore || 0}%` }}
                 />
               </div>
             </div>
 
+            {/* RISK FLAGS */}
             <div>
               <p className="text-sm text-muted-foreground">Risk Flags</p>
-              {result.riskFlags?.length > 0 ? (
+
+              {Array.isArray(result?.riskFlags) &&
+              result.riskFlags.length > 0 ? (
                 result.riskFlags.map((risk, i) => (
                   <Badge key={i} variant="destructive" className="mr-2">
                     {risk}
@@ -180,15 +211,19 @@ const HealthScanner = () => {
               )}
             </div>
 
+            {/* RECOMMENDATION */}
             <div>
               <p className="text-sm text-muted-foreground">Recommendation</p>
-              <p className="font-medium">{result.recommendation}</p>
+              <p className="font-medium">
+                {result?.recommendation || "No recommendation"}
+              </p>
             </div>
 
           </CardContent>
         </Card>
       )}
 
+      {/* HISTORY */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -198,6 +233,7 @@ const HealthScanner = () => {
         </CardHeader>
 
         <CardContent className="space-y-4">
+
           {history.length === 0 && (
             <p className="text-muted-foreground text-sm">
               No history found
@@ -210,34 +246,41 @@ const HealthScanner = () => {
               className="border rounded-lg p-4 space-y-2 bg-muted/20"
             >
               <p className="text-xs text-muted-foreground">
-                {new Date(item.createdAt).toLocaleString()}
+                {item?.createdAt
+                  ? new Date(item.createdAt).toLocaleString()
+                  : "No date"}
               </p>
 
               <p className="text-sm">
-                <span className="font-semibold">Input:</span> {item.inputText}
+                <span className="font-semibold">Input:</span>{" "}
+                {item?.inputText || "N/A"}
               </p>
 
               <p className="text-sm">
                 <span className="font-semibold">Items:</span>{" "}
-                {item.detectedItems.join(", ") || "None"}
+                {Array.isArray(item?.detectedItems) &&
+                item.detectedItems.length > 0
+                  ? item.detectedItems.join(", ")
+                  : "None"}
               </p>
 
               <p className="text-sm">
                 <span className="font-semibold">Calories:</span>{" "}
-                {item.calories} kcal
+                {item?.calories || 0} kcal
               </p>
 
               <p className="text-sm">
                 <span className="font-semibold">Score:</span>{" "}
-                {item.healthScore}/100
+                {item?.healthScore || 0}/100
               </p>
 
               <p className="text-sm">
                 <span className="font-semibold">Recommendation:</span>{" "}
-                {item.recommendation}
+                {item?.recommendation || "No recommendation"}
               </p>
             </div>
           ))}
+
         </CardContent>
       </Card>
 
@@ -246,4 +289,3 @@ const HealthScanner = () => {
 }
 
 export default HealthScanner
-
