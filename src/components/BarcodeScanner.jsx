@@ -436,20 +436,9 @@ const BarcodeScanner = () => {
 
           <CardHeader className="pb-4 relative pt-8 px-8">
             <div className="absolute top-8 right-8 flex gap-2 flex-wrap justify-end">
-              {product.grade && (
-                <Badge variant="outline" className={`${getGradeColor(product.grade)} px-4 py-1.5 font-black text-[10px] uppercase tracking-widest rounded-full border`}>
-                  Grade {product.grade}
-                </Badge>
-              )}
-              {product.category && (
-                <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 px-4 py-1.5 font-black text-[10px] uppercase tracking-widest rounded-full">
-                  {product.category}
-                </Badge>
-              )}
             </div>
             <CardTitle className="flex items-center gap-5 text-3xl font-black tracking-tighter">
               <div className="p-4 rounded-3xl bg-primary text-primary-foreground shadow-2xl shadow-primary/30">
-                <Apple className="h-8 w-8" />
               </div>
               <div className="flex flex-col">
                 <span className="leading-tight">
@@ -468,7 +457,7 @@ const BarcodeScanner = () => {
                   <div className="relative">
                     <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
                       <span className="text-2xl font-black text-primary">
-                        {Math.round((product.score || 0) * 100)}
+                        {product.score}
                       </span>
                     </div>
                     <div className="absolute -bottom-1 -right-1 p-1 rounded-full bg-primary text-primary-foreground">
@@ -477,11 +466,7 @@ const BarcodeScanner = () => {
                   </div>
                   <div className="flex-1">
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Health Score</p>
-                    <p className="text-sm font-semibold mt-1">
-                      {product.score && product.score >= 0.7 ? "Excellent nutritional profile" :
-                       product.score && product.score >= 0.5 ? "Moderate nutritional value" :
-                       "Consider healthier alternatives"}
-                    </p>
+                    
                   </div>
                 </div>
               )}
