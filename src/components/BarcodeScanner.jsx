@@ -34,7 +34,16 @@ import {
   Layers,
   Fingerprint,
   Info,
-  Activity
+  Activity,
+  TrendingUp,
+  TrendingDown,
+  Scale,
+  Droplet,
+  Flame,
+  Apple,
+  ThumbsUp,
+  ThumbsDown,
+  AlertCircle
 } from "lucide-react"
 
 // Beep sound on success
@@ -43,8 +52,8 @@ const beep = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_
 /* ────────────────────────────────────────────────────────────── */
 /*  Helper Components                                             */
 /* ────────────────────────────────────────────────────────────── */
-const InfoCard = ({ icon: Icon, label, value, colorClass = "text-primary" }) => {
-  if (!value) return null
+const InfoCard = ({ icon: Icon, label, value, colorClass = "text-primary", suffix = "" }) => {
+  if (!value && value !== 0) return null
   return (
     <div className="flex items-start gap-3 p-3 rounded-xl bg-background/50 border border-border/50 hover:border-primary/30 transition-all group">
       <div className={`p-2 rounded-lg bg-background shadow-sm group-hover:scale-110 transition-transform ${colorClass}`}>
@@ -52,8 +61,23 @@ const InfoCard = ({ icon: Icon, label, value, colorClass = "text-primary" }) => 
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-0.5">{label}</p>
-        <p className="text-sm font-semibold truncate text-foreground">{value}</p>
+        <p className="text-sm font-semibold truncate text-foreground">{value}{suffix}</p>
       </div>
+    </div>
+  )
+}
+
+const NutrientCard = ({ label, value, unit, icon: Icon, colorClass }) => {
+  if (!value && value !== 0) return null
+  return (
+    <div className="flex items-center justify-between p-3 rounded-xl bg-background/50 border border-border/50">
+      <div className="flex items-center gap-2">
+        <Icon className={`h-4 w-4 ${colorClass}`} />
+        <span className="text-xs font-medium text-muted-foreground">{label}</span>
+      </div>
+      <span className="text-sm font-bold text-foreground">
+        {value}{unit && ` ${unit}`}
+      </span>
     </div>
   )
 }
@@ -166,6 +190,7 @@ const BarcodeScanner = () => {
       setCameraError(err.message || "Failed to access camera.")
     }
   }, [])
+  
   /* ── AUTO-START ON MOUNT ── */
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -191,17 +216,22 @@ const BarcodeScanner = () => {
         { barcode },
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      setResult(res.data)
+      // Extract data from response structure
+      const responseData = res.data?.data || res.data
+      setResult(responseData)
 
       // update history
+      const displayName = responseData?.productName || 
+                         responseData?.name || 
+                         "Product"
       setHistory(prev => [
-        { barcode, name: res.data?.product_name || "Identified Medicine" },
+        { barcode, name: displayName },
         ...prev.slice(0, 4)
       ])
     } catch (err) {
       setError(
         err.response?.data?.message ||
-        "Medicine not found in clinical database. Ensure the code is clear."
+        "Product not found in database. Ensure the code is clear."
       )
     } finally {
       setLoading(false)
@@ -229,7 +259,43 @@ const BarcodeScanner = () => {
     setError("")
   }
 
-  const product = result?.data || result?.product || result
+  const product = result || {}
+
+  const getGradeColor = (grade) => {
+    if (!grade) return "text-primary bg-primary/10 border-primary/20"
+    switch(grade?.charAt(0)) {
+      case 'A': return "text-green-600 dark:text-green-400 bg-green-500/10 border-green-500/20"
+      case 'B': return "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
+      case 'C': return "text-yellow-600 dark:text-yellow-400 bg-yellow-500/10 border-yellow-500/20"
+      case 'D': return "text-orange-600 dark:text-orange-400 bg-orange-500/10 border-orange-500/20"
+      case 'E': return "text-red-600 dark:text-red-400 bg-red-500/10 border-red-500/20"
+      default: return "text-primary bg-primary/10 border-primary/20"
+    }
+  }
+
+  const getRecommendationIcon = (recommendation) => {
+    if (!recommendation) return <Activity className="h-5 w-5" />
+    const rec = recommendation.toLowerCase()
+    if (rec.includes("avoid") || rec.includes("limit")) return <ThumbsDown className="h-5 w-5" />
+    if (rec.includes("recommend") || rec.includes("good")) return <ThumbsUp className="h-5 w-5" />
+    return <AlertCircle className="h-5 w-5" />
+  }
+
+  const getRecommendationColor = (recommendation) => {
+    if (!recommendation) return "text-primary"
+    const rec = recommendation.toLowerCase()
+    if (rec.includes("avoid") || rec.includes("limit")) return "text-red-500"
+    if (rec.includes("recommend") || rec.includes("good")) return "text-green-500"
+    return "text-yellow-500"
+  }
+
+  const getCategoryIcon = (category) => {
+    if (!category) return <Activity className="h-5 w-5" />
+    if (category?.toLowerCase().includes("healthy")) return <TrendingUp className="h-5 w-5" />
+    if (category?.toLowerCase().includes("moderate")) return <Scale className="h-5 w-5" />
+    if (category?.toLowerCase().includes("unhealthy")) return <TrendingDown className="h-5 w-5" />
+    return <Activity className="h-5 w-5" />
+  }
 
   /* ──────────────────────────────────────────────────────────── */
   return (
@@ -260,8 +326,6 @@ const BarcodeScanner = () => {
 
           {scanning && (
             <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-              {/* the dimming mask (like UPI) is partially handled by html5-qrcode's qrbox, 
-                      but we'll add some extra visuals */}
               <div className="w-[260px] h-[190px] border-2 border-white/40 rounded-2xl relative shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]">
                 <div className="absolute top-0 left-0 right-0 h-1 bg-green-400 animate-scanline blur-[1px] shadow-[0_0_10px_2px_rgba(74,222,128,0.5)]" />
 
@@ -312,7 +376,7 @@ const BarcodeScanner = () => {
         <Card className="md:col-span-3 border-0 shadow-sm bg-muted/30 rounded-[28px]">
           <CardContent className="pt-5 flex gap-2">
             <Input
-              placeholder="Enter medicine barcode manually..."
+              placeholder="Enter barcode manually..."
               value={manualCode}
               onChange={(e) => setManualCode(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleManualLookup()}
@@ -327,7 +391,7 @@ const BarcodeScanner = () => {
         {history.length > 0 && (
           <Card className="md:col-span-2 border-0 shadow-sm bg-muted/10 rounded-[28px] overflow-hidden">
             <CardContent className="pt-5 flex flex-col gap-2">
-              <h4 className="text-[10px] font-black uppercase text-muted-foreground/60 tracking-widest pl-1">Identified History</h4>
+              <h4 className="text-[10px] font-black uppercase text-muted-foreground/60 tracking-widest pl-1">Scan History</h4>
               <div className="flex flex-col gap-1.5">
                 {history.map((item, idx) => (
                   <div key={idx} className="flex justify-between items-center bg-background/50 p-2 rounded-lg border border-border/40 hover:bg-background transition-colors cursor-pointer" onClick={() => handleApi(item.barcode)}>
@@ -365,87 +429,187 @@ const BarcodeScanner = () => {
         </div>
       )}
 
-      {/* ── CLINICAL DATA RESULT ── */}
+      {/* ── PRODUCT DATA RESULT ── */}
       {result && !loading && (
         <Card className="border-0 shadow-2xl bg-gradient-to-br from-background via-background to-primary/5 rounded-[40px] overflow-hidden animate-result result-glow">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-blue-500 to-primary/30" />
 
           <CardHeader className="pb-4 relative pt-8 px-8">
-            <div className="absolute top-8 right-8">
-              <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 px-4 py-1.5 font-black text-[10px] uppercase tracking-widest rounded-full">
-                {product?.product_type || "Medication"}
-              </Badge>
+            <div className="absolute top-8 right-8 flex gap-2 flex-wrap justify-end">
+              {product.grade && (
+                <Badge variant="outline" className={`${getGradeColor(product.grade)} px-4 py-1.5 font-black text-[10px] uppercase tracking-widest rounded-full border`}>
+                  Grade {product.grade}
+                </Badge>
+              )}
+              {product.category && (
+                <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 px-4 py-1.5 font-black text-[10px] uppercase tracking-widest rounded-full">
+                  {product.category}
+                </Badge>
+              )}
             </div>
             <CardTitle className="flex items-center gap-5 text-3xl font-black tracking-tighter">
               <div className="p-4 rounded-3xl bg-primary text-primary-foreground shadow-2xl shadow-primary/30">
-                <Package className="h-8 w-8" />
+                <Apple className="h-8 w-8" />
               </div>
               <div className="flex flex-col">
-                <span className="leading-tight">{product?.brand_name || product?.name || product?.product_name || "Product Found"}</span>
-                {product?.generic_name && (
-                  <span className="text-[10px] font-bold text-muted-foreground mt-2 uppercase tracking-[0.25em] leading-none opacity-60">
-                    {product.generic_name}
-                  </span>
-                )}
+                <span className="leading-tight">
+                  {product.productName || product.name || "Product Found"}
+                </span>
               </div>
             </CardTitle>
           </CardHeader>
 
           <CardContent className="space-y-10 pt-4 px-8 pb-10">
-            {product?.status && (
-              <div className="flex items-center gap-3 p-4 rounded-[24px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 shadow-sm shadow-emerald-500/5">
-                <ShieldCheck className="h-5 w-5" />
-                <span className="text-xs font-black uppercase tracking-widest leading-none">Clinical Status: {product.status}</span>
-              </div>
-            )}
-
-            <DetailSection title="Core Clinical Data" icon={Info}>
-              <InfoCard icon={Building2} label="Manufacturer" value={product?.manufacturer_name || product?.manufacturer} colorClass="text-blue-500" />
-              <InfoCard icon={Pill} label="Dosage Form" value={product?.dosage_form} colorClass="text-purple-500" />
-              <InfoCard icon={Globe} label="Route" value={Array.isArray(product?.route) ? product.route.join(", ") : product?.route} colorClass="text-emerald-500" />
-              <InfoCard icon={Layers} label="Strength" value={Array.isArray(product?.active_ingredients)
-                ? product.active_ingredients.map((i) => `${i.name} ${i.strength}`).join(", ")
-                : product?.strength
-              } colorClass="text-orange-500" />
-              <InfoCard icon={Fingerprint} label="NDC / ID" value={product?.product_ndc || product?.ndc} colorClass="text-pink-500" />
-              <InfoCard icon={ScanBarcode} label="UPC/Barcode" value={product?.barcode || scannedCode || manualCode} colorClass="text-cyan-500" />
-            </DetailSection>
-
-            {product?.packaging?.length > 0 && (
-              <DetailSection title="Clinical Packaging" icon={Box}>
-                {product.packaging.map((p, i) => (
-                  <div key={i} className="col-span-full flex items-start gap-4 p-5 rounded-[24px] bg-muted/30 border border-border/50 text-sm italic text-muted-foreground italic tracking-tight leading-relaxed">
-                    <FileText className="h-5 w-5 mt-0.5 shrink-0 text-primary/40" />
-                    {p.description}
+            {/* Health Score and Recommendation Section */}
+            <div className="space-y-4">
+              {/* Health Score */}
+              {product.score !== undefined && (
+                <div className="flex items-center gap-4 p-5 rounded-[24px] bg-gradient-to-r from-primary/5 to-transparent border border-primary/10">
+                  <div className="relative">
+                    <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
+                      <span className="text-2xl font-black text-primary">
+                        {Math.round((product.score || 0) * 100)}
+                      </span>
+                    </div>
+                    <div className="absolute -bottom-1 -right-1 p-1 rounded-full bg-primary text-primary-foreground">
+                      {getCategoryIcon(product.category)}
+                    </div>
                   </div>
-                ))}
-              </DetailSection>
-            )}
-
-            {Object.entries(product || {}).filter(([k, v]) =>
-              !["name", "brand_name", "product_name", "generic_name", "status", "manufacturer_name", "manufacturer", "dosage_form", "route", "active_ingredients", "strength", "product_type", "product_ndc", "ndc", "barcode", "packaging", "data", "product"].includes(k) &&
-              v !== null && v !== undefined && (typeof v !== "object" || (Array.isArray(v) && v.length > 0))
-            ).length > 0 && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 px-1">
-                    <Activity className="h-4 w-4 text-primary/70" />
-                    <h3 className="text-sm font-black tracking-tight text-foreground/80 uppercase">Clinical Metadata</h3>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {Object.entries(product || {}).filter(([k, v]) =>
-                      !["name", "brand_name", "product_name", "generic_name", "status", "manufacturer_name", "manufacturer", "dosage_form", "route", "active_ingredients", "strength", "product_type", "product_ndc", "ndc", "barcode", "packaging", "data", "product"].includes(k) &&
-                      v !== null && v !== undefined && (typeof v !== "object" || (Array.isArray(v) && v.length > 0))
-                    ).map(([k, v]) => (
-                      <div key={k} className="px-4 py-3 rounded-2xl bg-secondary/20 border border-border/30 flex flex-col gap-1 hover:bg-secondary/40 transition-all">
-                        <span className="text-[9px] font-black text-primary/60 uppercase tracking-tighter leading-none mb-1">{k.replace(/_/g, ' ')}</span>
-                        <span className="text-xs font-bold text-foreground truncate">
-                          {Array.isArray(v) ? v.join(", ") : String(v)}
-                        </span>
-                      </div>
-                    ))}
+                  <div className="flex-1">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Health Score</p>
+                    <p className="text-sm font-semibold mt-1">
+                      {product.score && product.score >= 0.7 ? "Excellent nutritional profile" :
+                       product.score && product.score >= 0.5 ? "Moderate nutritional value" :
+                       "Consider healthier alternatives"}
+                    </p>
                   </div>
                 </div>
               )}
+
+              {/* Recommendation */}
+              {product.recommendation && (
+                <div className={`flex items-center gap-4 p-5 rounded-[24px] border-2 ${getRecommendationColor(product.recommendation)}/20 bg-gradient-to-r ${getRecommendationColor(product.recommendation)}/5 to-transparent`}>
+                  <div className={`p-3 rounded-full ${getRecommendationColor(product.recommendation)}/10`}>
+                    {getRecommendationIcon(product.recommendation)}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Recommendation</p>
+                    <p className={`text-lg font-black ${getRecommendationColor(product.recommendation)}`}>
+                      {product.recommendation}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Reasons */}
+              {product.reason && product.reason.length > 0 && (
+                <div className="space-y-2 p-5 rounded-[24px] bg-amber-500/5 border border-amber-500/20">
+                  <div className="flex items-center gap-2 mb-3">
+                    <AlertCircle className="h-4 w-4 text-amber-500" />
+                    <p className="text-[10px] uppercase tracking-wider text-amber-600 dark:text-amber-400 font-bold">Clinical Analysis</p>
+                  </div>
+                  {product.reason.map((reason, idx) => (
+                    <div key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
+                      <span className="text-amber-500 mt-0.5">•</span>
+                      <span>{reason}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Nutritional Information */}
+            {product.nutrients && (
+              <DetailSection title="Nutritional Analysis" icon={Activity}>
+                <NutrientCard 
+                  label="Sugars" 
+                  value={product.nutrients.sugars} 
+                  unit="g" 
+                  icon={Droplet}
+                  colorClass="text-red-500"
+                />
+                <NutrientCard 
+                  label="Fat" 
+                  value={product.nutrients.fat} 
+                  unit="g" 
+                  icon={Activity}
+                  colorClass="text-yellow-500"
+                />
+                <NutrientCard 
+                  label="Salt" 
+                  value={product.nutrients.salt} 
+                  unit="g" 
+                  icon={Scale}
+                  colorClass="text-blue-500"
+                />
+              </DetailSection>
+            )}
+
+            {/* Product Details */}
+            <DetailSection title="Product Information" icon={Info}>
+              <InfoCard
+                icon={ScanBarcode}
+                label="Barcode"
+                value={scannedCode || manualCode}
+                colorClass="text-purple-500"
+              />
+              <InfoCard
+                icon={Package}
+                label="Product Name"
+                value={product.productName}
+                colorClass="text-blue-500"
+              />
+              <InfoCard
+                icon={ShieldCheck}
+                label="Grade"
+                value={product.grade}
+                colorClass="text-green-500"
+              />
+              <InfoCard
+                icon={AlertTriangle}
+                label="Category"
+                value={product.category}
+                colorClass="text-orange-500"
+              />
+              <InfoCard
+                icon={Activity}
+                label="Health Score"
+                value={`${Math.round((product.score || 0) * 100)}%`}
+                colorClass="text-primary"
+              />
+              <InfoCard
+                icon={ThumbsUp}
+                label="Recommendation"
+                value={product.recommendation}
+                colorClass={getRecommendationColor(product.recommendation)}
+              />
+            </DetailSection>
+
+            {/* Additional Metadata */}
+            {Object.entries(product || {}).filter(([k, v]) =>
+              !["productName", "name", "grade", "category", "score", "recommendation", "reason", "nutrients"].includes(k) &&
+              v !== null && v !== undefined && (typeof v !== "object" || (Array.isArray(v) && v.length > 0))
+            ).length > 0 && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 px-1">
+                  <Activity className="h-4 w-4 text-primary/70" />
+                  <h3 className="text-sm font-black tracking-tight text-foreground/80 uppercase">Additional Information</h3>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {Object.entries(product || {}).filter(([k, v]) =>
+                    !["productName", "name", "grade", "category", "score", "recommendation", "reason", "nutrients"].includes(k) &&
+                    v !== null && v !== undefined && (typeof v !== "object" || (Array.isArray(v) && v.length > 0))
+                  ).map(([k, v]) => (
+                    <div key={k} className="px-4 py-3 rounded-2xl bg-secondary/20 border border-border/30 flex flex-col gap-1 hover:bg-secondary/40 transition-all">
+                      <span className="text-[9px] font-black text-primary/60 uppercase tracking-tighter leading-none mb-1">{k.replace(/_/g, ' ')}</span>
+                      <span className="text-xs font-bold text-foreground truncate">
+                        {Array.isArray(v) ? v.join(", ") : String(v)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </CardContent>
 
           <CardHeader className="pt-0 pb-8">
