@@ -20,7 +20,7 @@ const navItems = [
   { path: "/symptoms", label: "Symptoms" },
   { path: "/healthScanner", label: "HealthScanner" },
   { path: "/barcode", label: "Barcode Scanner" },
-  { path: "/dashboard", label: "Dashboard" },
+  { path: "/MedicineSearch", label: "Medicine" },
   { path: "/doctors", label: "Doctors" },
 ]
 
