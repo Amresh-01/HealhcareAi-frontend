@@ -21,23 +21,40 @@ export function AIChatAssistance({
   const [isLoading, setIsLoading] = useState(false)
   const [isListening, setIsListening] = useState(false)
 
+  const [mode, setMode] = useState("chat")
+  const [pdfFile, setPdfFile] = useState(null)
+  const [sessionId, setSessionId] = useState("")
+
   const scrollRef = useRef(null)
 
-  const suggestedQuestions = [
-    "What causes headaches?",
-    "How to improve sleep?",
-    "Signs of dehydration?",
-    "When to see a doctor?",
-  ]
-
+  // 🔄 AUTO SCROLL
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-    }
+    scrollRef.current?.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: "smooth",
+    })
   }, [messages])
 
-  const handleSend = () => {
-    if (!input.trim()) return
+  // ❌ REMOVE PDF
+  const removePdf = () => {
+    setPdfFile(null)
+  }
+
+  // 🧹 CLEAR CHAT (NEW FEATURE)
+  const clearChat = () => {
+    setMessages([])
+    setInput("")
+    setSessionId("")
+  }
+
+  // 🚀 SEND MESSAGE
+  const handleSend = async () => {
+    if (!input.trim() || isLoading) return
+
+    if (mode === "pdf" && !pdfFile) {
+      alert("Please upload a PDF first")
+      return
+    }
 
     const userMessage = {
       id: Date.now(),
@@ -49,32 +66,71 @@ export function AIChatAssistance({
     setInput("")
     setIsLoading(true)
 
-    setTimeout(() => {
-      const replies = [
-        "This could be due to multiple reasons. Please consult a doctor.",
-        "Stay hydrated and monitor your symptoms.",
-        "If it persists, seek medical advice.",
-      ]
+    try {
+      let data
 
-      const aiMessage = {
-        id: Date.now() + 1,
-        role: "assistant",
-        content: replies[Math.floor(Math.random() * replies.length)],
+      if (mode === "chat") {
+        const res = await fetch(
+          "https://ai-healtcare-22.onrender.com/ask",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              question: userMessage.content,
+              session_id: sessionId || "",
+            }),
+          }
+        )
+
+        data = await res.json()
+        setSessionId(data.session_id || "")
+      } else {
+        const formData = new FormData()
+        formData.append("file", pdfFile)
+
+        const url =
+          "https://ai-healtcare-22.onrender.com/ask-pdf" +
+          `?question=${encodeURIComponent(userMessage.content)}` +
+          `&session_id=${sessionId || ""}`
+
+        const res = await fetch(url, {
+          method: "POST",
+          body: formData,
+        })
+
+        data = await res.json()
+        setSessionId(data.session_id || "")
       }
 
-      setMessages((prev) => [...prev, aiMessage])
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now() + 1,
+          role: "assistant",
+          content: data.answer || "No response",
+        },
+      ])
+    } catch (error) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now() + 1,
+          role: "assistant",
+          content: "⚠️ Server error",
+        },
+      ])
+    } finally {
       setIsLoading(false)
-    }, 1200)
+    }
   }
 
   const toggleVoice = () => {
     setIsListening(!isListening)
-
     if (!isListening) {
       setTimeout(() => {
         setInput("I have headache since 2 days")
         setIsListening(false)
-      }, 2000)
+      }, 1500)
     }
   }
 
@@ -82,120 +138,165 @@ export function AIChatAssistance({
 
   return (
     <div
-      className={`fixed z-50 flex flex-col backdrop-blur-xl border border-white/10 
-      bg-gradient-to-br from-[#0b1220] to-[#020617] text-white shadow-2xl rounded-2xl
+      className={`fixed z-50 flex flex-col backdrop-blur-2xl border border-white/10 
+      bg-gradient-to-br from-[#0b1220] to-[#020617] text-white shadow-2xl rounded-3xl overflow-hidden
       transition-all duration-300
-      ${isExpanded ? "inset-4" : "bottom-5 right-5 w-[360px] h-[520px]"}`}
+      ${isExpanded ? "inset-4" : "bottom-5 right-5 w-[380px] h-[560px]"}`}
     >
-      {/* 🔷 Header */}
-      <div className="flex justify-between items-center px-4 py-3 border-b border-white/10">
+
+      {/* 🔷 HEADER */}
+      <div className="flex justify-between items-center px-4 py-3 border-b border-white/10 bg-white/5">
         <div className="flex items-center gap-2">
-          <div className="bg-primary/20 p-2 rounded-lg">
-            <Bot className="h-4 w-4 text-primary" />
+          <div className="bg-green-500/20 p-2 rounded-full">
+            <Bot className="h-4 w-4 text-green-400" />
           </div>
-          <span className="font-semibold">AI Health Assistant</span>
+          <div>
+            <p className="text-sm font-semibold">AI Health Assistant</p>
+            <p className="text-[10px] text-green-400">● Online</p>
+          </div>
         </div>
 
-        <div className="flex gap-2">
+        {/* ACTION BUTTONS */}
+        <div className="flex gap-2 items-center">
+
+          {/* 🧹 CLEAR CHAT BUTTON (NEW) */}
+          <button
+            onClick={clearChat}
+            className="text-xs px-2 py-1 rounded bg-red-500/20 text-red-400 hover:bg-red-500/30"
+          >
+            Clear
+          </button>
+
           {onToggleExpand && (
-            <button
-              onClick={onToggleExpand}
-              className="hover:bg-white/10 p-1 rounded"
-            >
-              {isExpanded ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+            <button onClick={onToggleExpand}>
+              {isExpanded ? (
+                <Minimize2 size={16} />
+              ) : (
+                <Maximize2 size={16} />
+              )}
             </button>
           )}
-          <button
-            onClick={onClose}
-            className="hover:bg-red-500/20 p-1 rounded"
-          >
+
+          <button onClick={onClose}>
             <X size={16} />
           </button>
         </div>
       </div>
 
-      {/* 💬 Chat Area */}
+      {/* MODE SWITCH */}
+      <div className="flex mx-3 mt-3 bg-white/5 rounded-full p-1">
+        <button
+          onClick={() => setMode("chat")}
+          className={`flex-1 py-1 text-xs rounded-full ${
+            mode === "chat" ? "bg-blue-500 text-white" : "text-gray-300"
+          }`}
+        >
+          Chat
+        </button>
+
+        <button
+          onClick={() => setMode("pdf")}
+          className={`flex-1 py-1 text-xs rounded-full ${
+            mode === "pdf" ? "bg-green-500 text-white" : "text-gray-300"
+          }`}
+        >
+          PDF
+        </button>
+      </div>
+
+      {/* PDF UPLOAD */}
+      {mode === "pdf" && (
+        <div className="mx-3 mt-2 p-2 border border-white/10 rounded-xl bg-white/5">
+          <input
+            type="file"
+            accept="application/pdf"
+            onChange={(e) => {
+              setPdfFile(e.target.files[0])
+              setMessages([])
+              setSessionId("")
+            }}
+            className="text-xs w-full"
+          />
+
+          {pdfFile && (
+            <div className="flex justify-between mt-2">
+              <p className="text-xs text-green-400 truncate max-w-[200px]">
+                📄 {pdfFile.name}
+              </p>
+
+              <button
+                onClick={removePdf}
+                className="text-red-400 text-xs"
+              >
+                ✕ Remove
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* CHAT AREA */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto p-4 space-y-3"
+        className="flex-1 overflow-y-auto px-4 py-3 space-y-3"
       >
         {messages.length === 0 ? (
           <div className="text-center mt-10">
-            <Sparkles className="mx-auto mb-3 text-primary animate-pulse" />
-            <p className="text-sm text-muted-foreground">
-              Ask anything about your health
+            <Sparkles className="mx-auto mb-3 text-green-400 animate-pulse" />
+            <p className="text-sm text-gray-300">
+              Ask your health questions
             </p>
-
-            <div className="mt-4 flex flex-wrap gap-2 justify-center">
-              {suggestedQuestions.map((q) => (
-                <button
-                  key={q}
-                  onClick={() => setInput(q)}
-                  className="px-3 py-1 text-xs rounded-full bg-white/5 hover:bg-primary/20 transition"
-                >
-                  {q}
-                </button>
-              ))}
-            </div>
           </div>
         ) : (
-          messages.map((msg) => (
+          messages.map((m) => (
             <div
-              key={msg.id}
+              key={m.id}
               className={`flex ${
-                msg.role === "user" ? "justify-end" : "justify-start"
+                m.role === "user" ? "justify-end" : "justify-start"
               }`}
             >
               <div
-                className={`px-4 py-2 rounded-xl max-w-[75%] text-sm shadow-md
+                className={`px-3 py-2 rounded-2xl text-sm max-w-[75%]
                 ${
-                  msg.role === "user"
-                    ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white"
-                    : "bg-white/10 backdrop-blur-md text-gray-200"
+                  m.role === "user"
+                    ? "bg-blue-500 text-white"
+                    : "bg-white/10 text-gray-200"
                 }`}
               >
-                {msg.content}
+                {m.content}
               </div>
             </div>
           ))
         )}
 
         {isLoading && (
-          <div className="text-xs text-muted-foreground animate-pulse">
-            AI is typing...
+          <div className="text-xs text-gray-400 animate-pulse">
+            AI is thinking...
           </div>
         )}
       </div>
 
-      {/* ✏️ Input */}
-      <div className="border-t border-white/10 p-3 flex gap-2 items-center">
+      {/* INPUT */}
+      <div className="p-3 border-t border-white/10 flex gap-2 bg-white/5">
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask something..."
-          className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          className="flex-1 px-3 py-2 rounded-xl bg-black/20 text-sm"
         />
 
-        {/* 🎤 Voice */}
-        <button
-          onClick={toggleVoice}
-          className="p-2 rounded-lg hover:bg-white/10 transition"
-        >
-          {isListening ? (
-            <MicOff className="text-red-400" size={18} />
-          ) : (
-            <Mic size={18} />
-          )}
+        <button onClick={toggleVoice}>
+          {isListening ? <MicOff /> : <Mic />}
         </button>
 
-        {/* 🚀 Send */}
         <button
           onClick={handleSend}
-          className="p-2 rounded-lg bg-primary hover:bg-primary/80 transition"
+          disabled={isLoading}
+          className="bg-blue-500 px-3 py-2 rounded-xl"
         >
           <Send size={16} />
         </button>
-      </div>  
+      </div>
     </div>
   )
 }

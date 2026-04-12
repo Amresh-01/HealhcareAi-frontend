@@ -28,9 +28,7 @@ const HealthScanner = () => {
 
   const token = localStorage.getItem("token")
 
-  /* =========================
-     FETCH HISTORY
-  ========================= */
+ 
   const fetchHistory = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/ml/history`, {
@@ -47,9 +45,7 @@ const HealthScanner = () => {
     if (token) fetchHistory()
   }, [token])
 
-  /* =========================
-     ANALYZE TEXT
-  ========================= */
+  
   const handleAnalyze = async () => {
     if (!review.trim()) return
 
@@ -79,9 +75,7 @@ const HealthScanner = () => {
     }
   }
 
-  /* =========================
-     SCORE COLOR
-  ========================= */
+ 
   const getScoreColor = (score = 0) => {
     if (score > 80) return "bg-green-500"
     if (score > 50) return "bg-yellow-500"
@@ -91,7 +85,6 @@ const HealthScanner = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
 
-      {/* HEADER */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-xl">
@@ -101,7 +94,6 @@ const HealthScanner = () => {
         </CardHeader>
       </Card>
 
-      {/* INPUT */}
       <Card>
         <CardContent className="space-y-4 pt-6">
           <Textarea
