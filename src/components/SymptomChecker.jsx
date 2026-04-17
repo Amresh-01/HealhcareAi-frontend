@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
-import { X, Search, Loader2, CheckCircle, AlertCircle, Trash2, Sparkles } from "lucide-react"
+import { X, Search, Loader2, CheckCircle, AlertCircle, Trash2, Sparkles, Activity, Plus } from "lucide-react"
 import { API_BASE_URL } from "../../config"
 
 export function SymptomChecker() {
@@ -36,7 +36,11 @@ export function SymptomChecker() {
     "depression",
     "skin growth",
     "weakness",
-    "anxiety and nervousness"]
+    "anxiety and nervousness"
+  ];
+
+  // Remove duplicates from popular fallback for cleaner mapping
+  const uniquePopularSymptoms = [...new Set(popularSymptoms.map(s => s.toLowerCase()))]
 
   // Fetch symptoms from backend
   useEffect(() => {
@@ -74,10 +78,10 @@ export function SymptomChecker() {
     setError("")
   }
 
-  const getColor = (p) =>
-    p >= 70 ? "from-red-500 to-pink-500" :
-    p >= 40 ? "from-yellow-400 to-orange-400" :
-    "from-green-400 to-emerald-500"
+  const getColorClass = (p) =>
+    p >= 70 ? "bg-red-500" :
+      p >= 40 ? "bg-amber-500" :
+        "bg-emerald-500"
 
   const analyzeSymptoms = async () => {
     if (!selectedSymptoms.length) return
@@ -119,137 +123,182 @@ export function SymptomChecker() {
   }
 
   return (
-    <div className="space-y-6 text-gray-300">
+    <div className="space-y-8 text-foreground w-full max-w-3xl mx-auto">
 
-      {/* Search */}
-      <div className="relative group">
-        <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Search symptoms..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full rounded-xl border border-white/10 bg-[#030b1a] text-white placeholder-gray-400 pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-[#0ea5e9] outline-none transition"
-        />
+      {/* Input Section */}
+      <div className="bg-card border border-border rounded-2xl shadow-sm p-6 overflow-visible relative z-20">
+        <div className="flex items-center gap-2 mb-6">
+          {/* <Activity className="h-5 w-5 text-primary" /> */}
+          <h2 className="text-xl font-bold tracking-tight">Symptom Assessment</h2>
+        </div>
 
-        {searchQuery && (
-          <div className="absolute z-10 mt-2 w-full rounded-xl border border-white/10 bg-[#020817] shadow-xl max-h-44 overflow-y-auto animate-fade-in">
-            {filteredSymptoms.length > 0 ? (
-              filteredSymptoms.slice(0, 6).map((symptom) => (
-                <div
-                  key={symptom}
-                  onClick={() => addSymptom(symptom)}
-                  className="px-4 py-2 text-sm cursor-pointer hover:bg-white/5 transition text-white"
-                >
-                  {symptom}
+        {/* Search */}
+        <div className="relative group mb-6">
+          <Search className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Search and add your symptoms..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full rounded-xl border border-input bg-background text-foreground placeholder-muted-foreground pl-12 pr-4 py-3 text-base focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-all shadow-sm"
+          />
+
+          {searchQuery && (
+            <div className="absolute z-50 mt-2 w-full rounded-xl border border-border bg-popover shadow-xl shadow-primary/5 max-h-60 overflow-y-auto animate-in fade-in slide-in-from-top-2">
+              {filteredSymptoms.length > 0 ? (
+                <div className="p-1">
+                  {filteredSymptoms.slice(0, 8).map((symptom) => (
+                    <div
+                      key={symptom}
+                      onClick={() => addSymptom(symptom)}
+                      className="flex items-center justify-between px-4 py-2.5 text-sm cursor-pointer rounded-lg hover:bg-muted transition text-popover-foreground transition-colors"
+                    >
+                      <span>{symptom}</span>
+                      <Plus className="h-4 w-4 opacity-50" />
+                    </div>
+                  ))}
                 </div>
-              ))
-            ) : (
-              <div className="px-4 py-2 text-sm text-gray-400">
-                No symptoms found
-              </div>
-            )}
+              ) : (
+                <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+                  No matching symptoms found
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Selected Symptoms */}
+        {selectedSymptoms.length > 0 && (
+          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="flex justify-between items-center mb-3">
+              <p className="text-sm font-semibold text-foreground">Selected Symptoms ({selectedSymptoms.length})</p>
+              <button onClick={clearAll} className="text-xs font-medium flex items-center gap-1 text-red-500 hover:text-red-600 transition-colors">
+                <Trash2 className="h-3 w-3" /> Clear all
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2 mb-6 p-4 rounded-xl bg-muted/50 border border-border border-dashed">
+              {selectedSymptoms.map((s) => (
+                <span
+                  key={s}
+                  className="group flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full bg-primary/10 text-primary border border-primary/20 shadow-sm"
+                >
+                  {s}
+                  <button onClick={() => removeSymptom(s)} className="text-primary/70 hover:text-red-500 transition-colors focus:outline-none">
+                    <X className="h-4 w-4" />
+                  </button>
+                </span>
+              ))}
+            </div>
+
+            {/* Analyze Button */}
+            <button
+              onClick={analyzeSymptoms}
+              disabled={isAnalyzing}
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary px-8 py-4 text-base font-semibold text-primary-foreground shadow-md hover:bg-primary/90 hover:shadow-primary/20 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+              {isAnalyzing ? (
+                <>
+                  <Loader2 className="animate-spin h-5 w-5" /> Analyzing Symptoms...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-5 w-5" /> Generate Assessment
+                </>
+              )}
+            </button>
           </div>
         )}
       </div>
 
-      {/* Popular */}
-      <div>
-        <p className="text-xs text-gray-400 mb-2 flex items-center gap-1">
-          <Sparkles className="h-3 w-3" /> Popular
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {popularSymptoms.map((s) => (
-            <button
-              key={s}
-              onClick={() => addSymptom(s)}
-              className="px-3 py-1 text-xs rounded-full border border-white/10 hover:bg-gradient-to-r from-[#0ea5e9] to-[#22d3ee] hover:text-black transition-all hover:scale-105"
-            >
-              + {s}
-            </button>
-          ))}
+      {error && (
+        <div className="flex items-center gap-2 p-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl">
+          <AlertCircle className="h-4 w-4" />
+          {error}
         </div>
-      </div>
+      )}
 
-      {/* Selected */}
-      {selectedSymptoms.length > 0 && (
-        <div className="animate-fade-in">
-          <div className="flex justify-between items-center mb-2 text-white">
-            <p className="text-sm font-medium">Selected ({selectedSymptoms.length})</p>
-            <button onClick={clearAll} className="text-xs flex items-center gap-1 text-red-500 hover:scale-105">
-              <Trash2 className="h-3 w-3" /> Clear all
-            </button>
-          </div>
+      {/* Popular Suggestions (only show if no results yet to keep UI clean) */}
+      {!result && (
+        <div className="px-2">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-1">
+            Quick Add
+          </p>
           <div className="flex flex-wrap gap-2">
-            {selectedSymptoms.map((s) => (
-              <span
+            {uniquePopularSymptoms.slice(0, 30).map((s) => (
+              <button
                 key={s}
-                className="flex items-center gap-1 px-3 py-1 text-sm rounded-full bg-gradient-to-r from-[#0ea5e9]/20 to-[#22d3ee]/20 border border-white/10 text-white"
+                onClick={() => addSymptom(s)}
+                className="px-3 py-1.5 text-xs font-medium rounded-full border border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-primary transition-colors shadow-sm capitalize"
               >
-                {s}
-                <button onClick={() => removeSymptom(s)}>
-                  <X className="h-3 w-3 hover:text-red-500" />
-                </button>
-              </span>
+                + {s}
+              </button>
             ))}
           </div>
         </div>
       )}
 
-      {/* Analyze */}
-      <button
-        onClick={analyzeSymptoms}
-        disabled={!selectedSymptoms.length || isAnalyzing}
-        className="w-full py-3 rounded-xl font-medium bg-gradient-to-r from-[#0ea5e9] to-[#22d3ee] text-black hover:scale-[1.02] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-      >
-        {isAnalyzing ? (
-          <>
-            <Loader2 className="animate-spin h-4 w-4" /> Ai Analyzing...
-          </>
-        ) : (
-          <>
-            <CheckCircle className="h-4 w-4" /> Analyze Symptoms
-          </>
-        )}
-      </button>
-
-      {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-
       {/* Results */}
       {result && (
-        <div className="space-y-4 border border-white/10 p-4 rounded-xl bg-[#030b1a] text-white animate-fade-in">
-          <h3 className="flex items-center gap-2 font-semibold">
-            <AlertCircle className="h-4 w-4 text-[#0ea5e9]" /> Possible Conditions
-          </h3>
+        <div className="rounded-2xl border border-border bg-card shadow-lg shadow-primary/5 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10">
+          <div className="bg-muted/30 border-b border-border p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h3 className="flex items-center gap-2 text-xl font-bold text-foreground">
+                <Activity className="h-5 w-5 text-primary" />
+                Analysis Results
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">Based on {selectedSymptoms.length} reported symptoms</p>
+            </div>
 
-          {result.conditions.map((c) => (
-            <div key={c.name}>
-              <div className="flex justify-between text-sm text-white">
-                <span>{c.name}</span>
-                <span>{c.probability}%</span>
-              </div>
-              <div className="h-2 bg-white/10 rounded-full mt-1 overflow-hidden">
-                <div
-                  className={`h-2 rounded-full bg-gradient-to-r ${getColor(c.probability)} transition-all duration-700`}
-                  style={{ width: `${c.probability}%` }}
-                />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-medium border border-amber-200 shadow-sm w-fit">
+              <AlertCircle className="h-3.5 w-3.5" />
+              <span>AI Guidance Only - Not a Diagnosis</span>
+            </div>
+          </div>
+
+          <div className="p-6 md:p-8 space-y-8">
+            {/* Conditions */}
+            <div>
+              <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Possible Conditions</h4>
+              <div className="space-y-5">
+                {result.conditions.map((c, idx) => (
+                  <div key={c.name} className="group">
+                    <div className="flex justify-between items-end mb-2">
+                      <span className="font-semibold text-foreground text-base capitalize">{c.name.replace(/_/g, " ")}</span>
+                      <span className="font-bold text-muted-foreground text-sm">{c.probability}%</span>
+                    </div>
+                    <div className="h-2.5 w-full bg-muted rounded-full overflow-hidden shadow-inner">
+                      <div
+                        className={`h-full rounded-full ${getColorClass(c.probability)} transition-all duration-1000 ease-out`}
+                        style={{ width: `${c.probability}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          ))}
 
-          <h3 className="flex items-center gap-2 font-semibold mt-4">
-            <CheckCircle className="h-4 w-4 text-green-400" /> Recommendations
-          </h3>
+            <hr className="border-border" />
 
-          <ul className="text-sm space-y-1 text-gray-300">
-            {result.recommendations.map((r, i) => (
-              <li key={i}>• {r}</li>
-            ))}
-          </ul>
+            {/* Recommendations */}
+            <div>
+              <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
+                <CheckCircle className="h-4 w-4" /> Next Steps
+              </h4>
+              <ul className="grid gap-3">
+                {result.recommendations.map((r, i) => (
+                  <li key={i} className="flex gap-3 text-sm text-foreground bg-muted/30 p-3 rounded-lg border border-border/50">
+                    <span className="text-primary mt-0.5">•</span>
+                    <span>{r}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-          <p className="text-xs text-gray-400 border-t border-white/10 pt-2">
-            ⚠️ This is AI-generated. Not a medical diagnosis.
-          </p>
+            {/* Disclaimer */}
+            <div className="mt-8 p-4 bg-muted/50 rounded-xl border border-border text-xs text-muted-foreground text-center">
+              This tool provides possible conditions based on symptoms for informational purposes only. It is not a substitute for professional medical advice, diagnosis, or treatment. Please consult a healthcare provider for any health concerns.
+            </div>
+          </div>
         </div>
       )}
     </div>
