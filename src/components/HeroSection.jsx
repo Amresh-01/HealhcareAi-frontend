@@ -1,8 +1,11 @@
 import { ArrowRight, Brain, Clock, Shield, Sparkles, Activity, FileText, ChevronRight, Stethoscope } from "lucide-react"
 import { TrustBadges } from "@/components/Trust-Badges"
 import { Button } from "@/components/ui/button"
+import { useNavigate } from "react-router-dom"
 
-export function HeroSection({ onNavigate }) {
+export function HeroSection() {
+  const navigate = useNavigate()
+
   const features = [
     {
       icon: Brain,
@@ -65,7 +68,7 @@ export function HeroSection({ onNavigate }) {
 
             <div className="flex flex-col sm:flex-row gap-4 mb-12">
               <Button
-                onClick={() => onNavigate("symptoms")}
+                onClick={() => navigate("/symptoms")}
                 size="lg"
                 className="h-14 px-8 text-base font-semibold shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all cursor-pointer"
               >
@@ -73,7 +76,7 @@ export function HeroSection({ onNavigate }) {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
 
-              <Button
+              {/* <Button
                 onClick={() => onNavigate("dashboard")}
                 variant="outline"
                 size="lg"
@@ -81,7 +84,7 @@ export function HeroSection({ onNavigate }) {
               >
                 <Stethoscope className="mr-2 h-5 w-5 text-muted-foreground" />
                 Provider Login
-              </Button>
+              </Button> */}
             </div>
 
             <div>
