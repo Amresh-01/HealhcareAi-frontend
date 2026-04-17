@@ -10,4 +10,13 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    proxy: {
+      '/ml-api': {
+        target: 'https://ai-healtcare-13.onrender.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/ml-api/, '')
+      }
+    }
+  }
 })

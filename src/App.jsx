@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { Routes, Route, useLocation } from "react-router-dom"
 
-import {Navbar}  from "./components/Navbar"
+import { Navbar } from "./components/Navbar"
 import { Footer } from "./components/Footer"
 
 import { HeroSection } from "./components/HeroSection"
@@ -15,7 +15,6 @@ import Signup from "./pages/Signup"
 import HealthScanner from "./components/HealthScanner.jsx"
 import BarcodeScanner from "./components/BarcodeScanner.jsx"
 import MedicineSearch from "./components/MedicineSearch"
-
 export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [isChatOpen, setIsChatOpen] = useState(false)
@@ -60,9 +59,11 @@ export default function App() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/doctors" element={<DoctorCards />} />
               <Route path="/symptoms" element={<SymptomChecker />} />
-              <Route path="/healthScanner" element={<HealthScanner/>}/>
-              <Route path="/MedicineSearch" element={<MedicineSearch/>}/>
-              <Route path="/barcode" element={<BarcodeScanner/>}/>
+              <Route path="/healthScanner" element={<HealthScanner />} />
+              <Route path="/MedicineSearch" element={<MedicineSearch />} />
+              <Route path="/barcode" element={<BarcodeScanner />} />
+              {/* <Route path="/hospital-login" element={<HospitalLogin />} /> */}
+              {/* <Route path="/hospital-dashboard" element={<HospitalDashboard />} /> */}
             </Routes>
 
           </main>

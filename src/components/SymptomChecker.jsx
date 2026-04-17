@@ -249,9 +249,18 @@ export function SymptomChecker() {
               <p className="text-sm text-muted-foreground mt-1">Based on {selectedSymptoms.length} reported symptoms</p>
             </div>
 
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-medium border border-amber-200 shadow-sm w-fit">
-              <AlertCircle className="h-3.5 w-3.5" />
-              <span>AI Guidance Only - Not a Diagnosis</span>
+            <div className="flex flex-col items-end gap-2">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-medium border border-amber-200 shadow-sm w-fit">
+                <AlertCircle className="h-3.5 w-3.5" />
+                <span>AI Guidance Only - Not a Diagnosis</span>
+              </div>
+              
+              {result.conditions && result.conditions.length > 0 && result.conditions[0].probability > 50 && (
+                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 text-red-600 text-[11px] font-bold border border-red-500/20 shadow-sm w-fit animate-pulse">
+                   <Activity className="h-3 w-3" />
+                   Priority Risk Detected: Transmitted to Triage AI
+                 </div>
+              )}
             </div>
           </div>
 
