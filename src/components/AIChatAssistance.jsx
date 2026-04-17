@@ -187,18 +187,16 @@ export function AIChatAssistance({
       <div className="flex mx-3 mt-3 bg-white/5 rounded-full p-1">
         <button
           onClick={() => setMode("chat")}
-          className={`flex-1 py-1 text-xs rounded-full ${
-            mode === "chat" ? "bg-blue-500 text-white" : "text-gray-300"
-          }`}
+          className={`flex-1 py-1 text-xs rounded-full ${mode === "chat" ? "bg-blue-500 text-white" : "text-gray-300"
+            }`}
         >
           Chat
         </button>
 
         <button
           onClick={() => setMode("pdf")}
-          className={`flex-1 py-1 text-xs rounded-full ${
-            mode === "pdf" ? "bg-green-500 text-white" : "text-gray-300"
-          }`}
+          className={`flex-1 py-1 text-xs rounded-full ${mode === "pdf" ? "bg-green-500 text-white" : "text-gray-300"
+            }`}
         >
           PDF
         </button>
@@ -251,17 +249,15 @@ export function AIChatAssistance({
           messages.map((m) => (
             <div
               key={m.id}
-              className={`flex ${
-                m.role === "user" ? "justify-end" : "justify-start"
-              }`}
+              className={`flex ${m.role === "user" ? "justify-end" : "justify-start"
+                }`}
             >
               <div
                 className={`px-3 py-2 rounded-2xl text-sm max-w-[75%]
-                ${
-                  m.role === "user"
+                ${m.role === "user"
                     ? "bg-blue-500 text-white"
                     : "bg-white/10 text-gray-200"
-                }`}
+                  }`}
               >
                 {m.content}
               </div>
@@ -281,8 +277,14 @@ export function AIChatAssistance({
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleSend();
+            }
+          }}
           placeholder="Ask something..."
-          className="flex-1 px-3 py-2 rounded-xl bg-black/20 text-sm"
+          className="flex-1 px-3 py-2 rounded-xl bg-black/20 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
 
         <button onClick={toggleVoice}>

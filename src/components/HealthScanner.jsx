@@ -28,7 +28,7 @@ const HealthScanner = () => {
 
   const token = localStorage.getItem("token")
 
- 
+
   const fetchHistory = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/ml/history`, {
@@ -45,7 +45,7 @@ const HealthScanner = () => {
     if (token) fetchHistory()
   }, [token])
 
-  
+
   const handleAnalyze = async () => {
     if (!review.trim()) return
 
@@ -75,7 +75,7 @@ const HealthScanner = () => {
     }
   }
 
- 
+
   const getScoreColor = (score = 0) => {
     if (score > 80) return "bg-green-500"
     if (score > 50) return "bg-yellow-500"
@@ -145,7 +145,7 @@ const HealthScanner = () => {
 
               <div className="flex flex-wrap gap-2 mt-1">
                 {Array.isArray(result?.detectedItems) &&
-                result.detectedItems.length > 0 ? (
+                  result.detectedItems.length > 0 ? (
                   result.detectedItems.map((item, i) => (
                     <Badge key={i}>{item}</Badge>
                   ))
@@ -192,7 +192,7 @@ const HealthScanner = () => {
               <p className="text-sm text-muted-foreground">Risk Flags</p>
 
               {Array.isArray(result?.riskFlags) &&
-              result.riskFlags.length > 0 ? (
+                result.riskFlags.length > 0 ? (
                 result.riskFlags.map((risk, i) => (
                   <Badge key={i} variant="destructive" className="mr-2">
                     {risk}
@@ -251,7 +251,7 @@ const HealthScanner = () => {
               <p className="text-sm">
                 <span className="font-semibold">Items:</span>{" "}
                 {Array.isArray(item?.detectedItems) &&
-                item.detectedItems.length > 0
+                  item.detectedItems.length > 0
                   ? item.detectedItems.join(", ")
                   : "None"}
               </p>
