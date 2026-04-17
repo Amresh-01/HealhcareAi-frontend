@@ -17,7 +17,6 @@ import {
   Sparkles,
   CheckCircle,
   History,
-  ShieldCheck,
 } from "lucide-react"
 
 const HealthScanner = () => {
@@ -29,8 +28,6 @@ const HealthScanner = () => {
 
   const token = localStorage.getItem("token")
 
-
-  const [isPrivacyMode, setIsPrivacyMode] = useState(true)
 
   const fetchHistory = async () => {
     try {
@@ -48,17 +45,6 @@ const HealthScanner = () => {
     if (token) fetchHistory()
   }, [token])
 
-  // REAL FEATURE: Local PII Scrubbing Engine
-  const scrubPII = (text) => {
-    let sanitized = text;
-    // Scrub Emails
-    sanitized = sanitized.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, "[REDACTED_EMAIL]");
-    // Scrub Phone Numbers
-    sanitized = sanitized.replace(/\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/g, "[REDACTED_PHONE]");
-    // Scrub SSN / Government IDs
-    sanitized = sanitized.replace(/\b\d{3}-\d{2}-\d{4}\b/g, "[REDACTED_ID]");
-    return sanitized;
-  }
 
   const handleAnalyze = async () => {
     if (!review.trim()) return
@@ -67,21 +53,19 @@ const HealthScanner = () => {
     setError("")
     setResult(null)
 
-    // APPLY REAL ANONYMIZATION AT THE EDGE BEFORE SENDING
-    const processedText = isPrivacyMode ? scrubPII(review) : review
-
     try {
       const res = await axios.post(
         `/ml-api/analyze-log`,
-        { 
-          text: processedText,
-          log_text: processedText,
-          log: processedText 
+        {
+          text: review,
+          log_text: review, // Adding multiple common keys to ensure the payload is accepted by the ML API
+          log: review
         }
       )
 
       const apiData = res.data;
 
+      // Map the response format to what the UI expects
       const apiResult = {
         detectedItems: apiData.detected_items || [],
         calories: apiData.estimated_calories || 0,
@@ -92,39 +76,12 @@ const HealthScanner = () => {
       }
 
       setResult(apiResult)
+
+      // Optionally refresh history if your backend also records this somewhere else
       fetchHistory()
     } catch (err) {
-      console.error("Cloud Analyze error:", err.message)
-      
-      // REAL FEATURE: Edge Compute Fallback if Cloud/Render is down
-      setError("Cloud connection lost! Engaging Local Edge Node fallback...")
-      
-      setTimeout(() => {
-         // Run a local heuristic (Offline model)
-         const textLower = processedText.toLowerCase();
-         let edgeScore = 70;
-         let flags = [];
-         
-         if(textLower.includes("sugar") || textLower.includes("pizza") || textLower.includes("pain")) {
-           edgeScore -= 20;
-           flags.push("High Sugar/Processed Food (Local Detection)", "Possible Pain (Local Detection)");
-         }
-         if(textLower.includes("water") || textLower.includes("run") || textLower.includes("walk")) {
-           edgeScore += 15;
-         }
-
-         setResult({
-            detectedItems: ["Results processed locally due to network outage"],
-            calories: "~ (Offline Mode)",
-            activityLevel: "Estimated Locally",
-            healthScore: Math.min(100, Math.max(0, edgeScore)),
-            riskFlags: flags,
-            recommendation: "System is offline. Displaying local heuristic estimations. Await cloud reconnect for deep ML analysis."
-         })
-         setError("")
-         setLoading(false)
-      }, 1500)
-      return; 
+      console.error("Analyze error:", err.response?.data || err.message)
+      setError("Failed to analyze input")
     } finally {
       setLoading(false)
     }
@@ -158,23 +115,6 @@ const HealthScanner = () => {
             rows={4}
           />
 
-          <div className="flex items-center justify-between bg-muted/30 p-3 rounded-lg border border-border">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className={`h-4 w-4 ${isPrivacyMode ? "text-green-500" : "text-muted-foreground"}`} />
-              <div className="space-y-0.5">
-                <p className="text-sm font-medium">HIPAA Privacy Scrubbing</p>
-                <p className="text-xs text-muted-foreground">Automatically redact emails, phone numbers, and IDs before hitting the cloud ML.</p>
-              </div>
-            </div>
-            {/* Functional Toggle */}
-            <button 
-               onClick={() => setIsPrivacyMode(!isPrivacyMode)}
-               className={`h-5 w-9 rounded-full relative shadow-inner transition-colors duration-200 ${isPrivacyMode ? 'bg-primary' : 'bg-muted-foreground/30'}`}
-            >
-               <div className={`h-4 w-4 bg-white absolute top-0.5 rounded-full shadow-sm transition-all duration-200 ${isPrivacyMode ? 'right-0.5' : 'left-0.5'}`}></div>
-            </button>
-          </div>
-
           <Button
             onClick={handleAnalyze}
             disabled={loading || !review.trim()}
@@ -183,12 +123,12 @@ const HealthScanner = () => {
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processing via Encrypted Channel...
+                Analyzing...
               </>
             ) : (
               <>
                 <CheckCircle className="mr-2 h-4 w-4" />
-                Analyze Health Log
+                Analyze
               </>
             )}
           </Button>
@@ -201,24 +141,15 @@ const HealthScanner = () => {
 
       {/* RESULT */}
       {result && (
-        <Card className="border-t-4 border-t-primary shadow-md">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-primary flex items-center gap-2">
-                <CheckCircle className="h-4 w-4" />
-                Analyzed Report
-              </CardTitle>
-              <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 flex gap-1">
-                <Sparkles className="w-3 h-3"/>
-                AI Confidence: 92%
-              </Badge>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1 max-w-lg">
-              *Disclaimer: This is AI-generated Clinical Decision Support. A human physician must review any flags above an 80 severity score. 
-            </p>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-green-500 flex items-center gap-2">
+              <CheckCircle className="h-4 w-4" />
+              Health Analysis Result
+            </CardTitle>
           </CardHeader>
 
-          <CardContent className="space-y-5 pt-4">
+          <CardContent className="space-y-4">
 
             {/* DETECTED ITEMS */}
             <div>
