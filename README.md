@@ -94,6 +94,7 @@ The frontend should now be running locally at `http://localhost:5173`.
 ## Architecture Flow Diagram
 <img width="1248" height="352" alt="image" src="https://github.com/user-attachments/assets/ee204167-345d-4072-adf2-dfab864d2d32" />
 <br>
+<img width="1166" height="630" alt="Screenshot 2026-04-03 124920" src="https://github.com/user-attachments/assets/6d0c35e5-e111-4964-a699-027eb9fbe8a9" />
 
 
 | Intelligent Triage | Barcode Scanning | 
