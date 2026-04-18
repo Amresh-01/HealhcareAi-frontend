@@ -86,14 +86,17 @@ The frontend should now be running locally at `http://localhost:5173`.
 
 ## 📸 Demo Screenshots
 <img width="1918" height="874" alt="Screenshot 2026-04-18 093645" src="https://github.com/user-attachments/assets/db8348b3-143d-42a0-a3e4-ddabd9d2811c" />
+<br>
 <img width="1919" height="874" alt="Screenshot 2026-04-18 094021" src="https://github.com/user-attachments/assets/7e1fe4dd-de9d-4d98-9948-cd0c5859240d" />
+<br>
 <img width="1000" height="858" alt="Screenshot 2026-04-18 095133" src="https://github.com/user-attachments/assets/a3b6fba5-af6c-4f67-b6df-7c4486621278" />
+<br>
 <img width="1919" height="876" alt="Screenshot 2026-04-18 095403" src="https://github.com/user-attachments/assets/2440506a-3c2e-48c1-81b5-2b463f53df94" />
 
 
 ## Architecture Flow Diagram
 <img width="1248" height="352" alt="image" src="https://github.com/user-attachments/assets/ee204167-345d-4072-adf2-dfab864d2d32" />
-<br>
+<br> <br>
 <img width="1166" height="630" alt="Screenshot 2026-04-03 124920" src="https://github.com/user-attachments/assets/6d0c35e5-e111-4964-a699-027eb9fbe8a9" />
 
 
