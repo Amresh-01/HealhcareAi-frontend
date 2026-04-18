@@ -1,1 +1,1 @@
-export const API_BASE_URL=`https://healthcareai-cpo7.onrender.com/api`;
+export const API_BASE_URL = `https://healthcareai-cpo7.onrender.com/api`;
